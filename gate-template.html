@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>The Uppsala Invitational</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👑</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Permanent+Marker&family=Spline+Sans+Mono:wght@400..700&display=swap">
+<style>
+:root{--navy:#0D1B2E;--navy2:#132743;--gold:#FFCD00;--ivory:#F1ECDD;--mono:'Spline Sans Mono',Consolas,monospace}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:linear-gradient(168deg,var(--navy) 0%,var(--navy2) 62%,#0F2038 100%);color:var(--ivory);font-family:'Schibsted Grotesk','Segoe UI',Arial,sans-serif;display:flex;align-items:center;justify-content:center;padding:24px}
+body::before{content:"";position:fixed;inset:0;background-image:radial-gradient(rgba(255,205,0,.05) 1.5px,transparent 1.6px);background-size:26px 26px;pointer-events:none}
+.gate{position:relative;max-width:420px;width:100%;text-align:center}
+.crest{margin-bottom:18px}
+h1{font-family:'Archivo','Arial Black',sans-serif;font-stretch:125%;font-weight:900;text-transform:uppercase;font-size:clamp(1.6rem,6vw,2.2rem);line-height:1;margin:0 0 6px;color:#F6F1E0}
+h1 span{color:var(--gold)}
+.sub{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#8FB8DC;margin:0 0 26px}
+.hint{font-family:'Permanent Marker','Segoe Script',cursive;color:var(--gold);font-size:1.15rem;transform:rotate(-1.6deg);display:inline-block;margin:0 0 18px;text-shadow:0 2px 14px rgba(6,14,26,.5)}
+form{display:flex;gap:10px;justify-content:center}
+input{flex:1;max-width:230px;background:rgba(9,18,32,.7);border:1px solid rgba(255,205,0,.4);border-radius:10px;color:var(--gold);font-family:var(--mono);font-size:1.05rem;letter-spacing:.3em;text-transform:uppercase;text-align:center;padding:12px 10px;outline:none}
+input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(255,205,0,.15)}
+button{background:var(--gold);color:#12233B;border:none;border-radius:10px;font-family:'Archivo','Arial Black',sans-serif;font-stretch:118%;font-weight:900;text-transform:uppercase;font-size:.9rem;letter-spacing:.05em;padding:12px 20px;cursor:pointer}
+button:hover{background:#FFD838}
+button:disabled{opacity:.55;cursor:wait}
+.msg{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#8FA6BF;margin-top:16px;min-height:16px}
+.msg.err{color:#F2A3A3}
+.gate.shake{animation:shake .4s}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+@media (prefers-reduced-motion:reduce){.gate.shake{animation:none}}
+</style>
+</head>
+<body>
+<div class="gate" id="gate">
+  <div class="crest" aria-hidden="true">
+    <svg width="86" height="62" viewBox="0 0 72 52">
+      <rect x="0" y="0" width="72" height="52" rx="8" fill="#123055"/>
+      <rect x="0" y="0" width="72" height="52" rx="8" fill="none" stroke="#FFCD00" stroke-width="2"/>
+      <g fill="#FFCD00">
+        <path d="M14 30 l4-9 4 9 v6 h-8z M18 18 l1.6 3.4 -3.2 0z"/>
+        <path d="M32 26 l4-11 4 11 v10 h-8z M36 12 l1.8 3.8 -3.6 0z"/>
+        <path d="M50 30 l4-9 4 9 v6 h-8z M54 18 l1.6 3.4 -3.2 0z"/>
+      </g>
+      <circle cx="18" cy="15" r="2" fill="#FFCD00"/><circle cx="36" cy="9" r="2" fill="#FFCD00"/><circle cx="54" cy="15" r="2" fill="#FFCD00"/>
+    </svg>
+  </div>
+  <h1>The Uppsala <span>Invitational</span></h1>
+  <p class="sub">Melbourne &middot; 17&ndash;20 Sep 2026 &middot; members only</p>
+  <p class="hint">&ldquo;How many times do you live?&rdquo;</p>
+  <form id="form">
+    <input id="pw" type="password" autocomplete="off" spellcheck="false" maxlength="24" aria-label="Password">
+    <button id="btn" type="submit">Unlock</button>
+  </form>
+  <p class="msg" id="msg">Ask the group chat if you're lost.</p>
+</div>
+<script>
+(function(){
+  'use strict';
+  var SALT='__SALT__', IV='__IV__', TAG='__TAG__', CT='__CT__', ITER=310000;
+  function b64d(s){var bin=atob(s),a=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)a[i]=bin.charCodeAt(i);return a}
+  function concat(){var len=0,i,off=0;for(i=0;i<arguments.length;i++)len+=arguments[i].length;var out=new Uint8Array(len);for(i=0;i<arguments.length;i++){out.set(arguments[i],off);off+=arguments[i].length}return out}
+  var salt=b64d(SALT),iv=b64d(IV),tag=b64d(TAG),ct=b64d(CT);
+  var gate=document.getElementById('gate'),form=document.getElementById('form'),
+      pwEl=document.getElementById('pw'),btn=document.getElementById('btn'),msg=document.getElementById('msg');
+  async function unlock(pw){
+    var enc=new TextEncoder();
+    var km=await crypto.subtle.importKey('raw',enc.encode(pw),'PBKDF2',false,['deriveBits']);
+    var bits=await crypto.subtle.deriveBits({name:'PBKDF2',salt:salt,iterations:ITER,hash:'SHA-256'},km,512);
+    var bytes=new Uint8Array(bits),aesRaw=bytes.slice(0,32),hmacRaw=bytes.slice(32);
+    var hKey=await crypto.subtle.importKey('raw',hmacRaw,{name:'HMAC',hash:'SHA-256'},false,['verify']);
+    var ok=await crypto.subtle.verify('HMAC',hKey,tag,concat(salt,iv,ct));
+    if(!ok) throw new Error('bad password');
+    var aKey=await crypto.subtle.importKey('raw',aesRaw,{name:'AES-CBC'},false,['decrypt']);
+    var plainBuf=await crypto.subtle.decrypt({name:'AES-CBC',iv:iv},aKey,ct);
+    return new TextDecoder().decode(plainBuf);
+  }
+  async function attempt(pw,silent){
+    pw=(pw||'').trim().toUpperCase();
+    if(!pw)return;
+    btn.disabled=true;
+    if(!silent){msg.className='msg';msg.textContent='Deriving key…'}
+    try{
+      var html=await unlock(pw);
+      try{localStorage.setItem('uppsalaKey',pw)}catch(e){}
+      document.open();document.write(html);document.close();
+    }catch(e){
+      btn.disabled=false;
+      if(!silent){
+        msg.className='msg err';msg.textContent='Nej. Not it — ask the group chat.';
+        gate.classList.remove('shake');void gate.offsetWidth;gate.classList.add('shake');
+        pwEl.select();
+      }
+    }
+  }
+  form.addEventListener('submit',function(ev){ev.preventDefault();attempt(pwEl.value,false)});
+  var stored=null;
+  try{stored=localStorage.getItem('uppsalaKey')}catch(e){}
+  if(stored){msg.textContent='Unlocking…';attempt(stored,true)}
+  else{pwEl.focus()}
+})();
+</script>
+</body>
+</html>
